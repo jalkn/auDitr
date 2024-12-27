@@ -729,3 +729,4 @@ main() {
 }
 
 main
+source .venv/bin/activate
