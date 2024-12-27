@@ -326,7 +326,7 @@ EOL
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Excel</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="{% static 'dashStyle.css' %}">
+    <link rel="stylesheet" href="{% static 'files.css' %}">
     <link rel="shortcut icon" href="{% static 'img/favicon.png' %}" type="image/x-icon">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
@@ -374,7 +374,7 @@ EOL
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="{% static 'dashStyle.css' %}">
+    <link rel="stylesheet" href="{% static 'chat.css' %}">
     <link rel="shortcut icon" href="{% static 'img/favicon.png' %}" type="image/x-icon">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.8.1/socket.io.min.js"></script>
@@ -468,243 +468,689 @@ createStatic() {
     mkdir -p static
     touch static/dashStyle.css
     cat > static/dashStyle.css << EOL
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background-color: #f0f2f5;
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-.topnav-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: white;
-    padding: 10px 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+body {
+  background-color: rgb(255, 255, 255);
+  font-family: 'Open Sans', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  
 }
 
 .logoIN {
-    text-decoration: none;
-    color: #0b00a2;
-    font-size: 24px;
-    font-weight: bold;
+  cursor: pointer;
+  margin: 1rem auto;
+  width: 40px;
+  height: 40px;
+  background-color: #0b00a2;
+  position: relative;
+  display: inline-flex;
+  text-decoration:none;
+  border-radius: 8px;
+}
+.logoIN::before {
+  content: "";
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  position: absolute;
+  top: 30%;
+  left: 70%;
+  transform: translate(-50%, -50%);
+  background-image: linear-gradient(to right, 
+      #ffffff 2px, transparent 1.5px,
+      transparent 1.5px, #ffffff 1.5px,
+      #ffffff 2px, transparent 1.5px);
+  background-size: 4px 100%; 
+}
+
+/*
+.logoIN {
+  cursor: pointer;
+  margin-bottom: 20px;
+  width: 40px;
+  height: 40px;
+  background-color: #0b00a2;
+  position: relative;
+  display: inline-flex;
+  text-decoration:none
+}
+
+.logoIN::before {
+  content: "";
+  display: block;
+  width: 40px;
+  height: 40px;
+  background-color: rgb(255, 255, 255);
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+*/
+.nomPag{
+  margin-left: 100px;
+  padding: 20px 55px;
+  text-decoration:none;
+  margin-left: 2px;
+  color: #0b00a2;
+}
+
+.material-icons{
+  color: #0b00a2;
+
+}
+
+.topnav i{
+  color: #0b00a2;
+  font-size: 25px;
+}
+
+.topnav-container{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  top: 0;
 }
 
 .topnav a {
-    color: black;
-    text-decoration: none;
-    padding: 10px 15px;
-    font-size: 20px;
-}
-
-.column {
-    float: left;
-    width: 25%;
-    padding: 0 10px;
-    margin-top: 20px;
-}
-
-.card {
-    background-color: white;
-    padding: 20px;
-    margin: 10px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-
-.card a {
-    text-decoration: none;
-    color: #333;
-    font-size: 18px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+  display: inline-block;
+  text-align: center;
+  padding: 5px 5px;
+  text-decoration: none;
+  margin-left: 2px;
 }
 
 .titles {
-    margin: 0 10px;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 15px;
+  margin: 20px;
+  color: #0b00a2;
 }
 
-.error-message {
-    background-color: #ffebee;
-    color: #c62828;
-    padding: 10px;
-    margin: 10px;
-    border-radius: 4px;
+.column {
+  float: left;
+  width: 100%;
+  padding: 0 10px;
+  margin-bottom: 20px;
 }
 
-/* static/css/file.css */
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background-color: #f0f2f5;
+.search-container {
+  position: relative;
 }
 
-.topnav-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: white;
-    padding: 10px 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+.search-container i {
+  position: absolute;
+  left: 25px;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
-.dashboard {
-    padding: 20px;
+.search-container input {
+  padding-left: 40px;
+  width: 100%;
+  border: 2px solid #ccc;
+  box-sizing: border-box;
+  border-radius: 10px;
+  padding: 20px 60px;
+  font-size: 16px;
+  font-family: 'Open Sans', sans-serif;
 }
 
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
-    margin-top: 20px;
+#tabla {
+  width: 100%;
+  font-size: 16px;
+  font-family: 'Open Sans', sans-serif;
+  padding: 0 55px;
 }
 
-.stat-card {
-    background-color: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+#tabla th, #tabla td {
+  text-align: left;
+  padding: 0.8rem;
 }
 
-.error {
-    background-color: #ffebee;
-    color: #c62828;
-    padding: 10px;
-    margin: 10px;
-    border-radius: 4px;
+
+.row {margin: 0 -5px;}
+
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
 }
 
-input[type="file"] {
+@media screen and (max-width: 600px) {
+  .column {
     width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+    display: block;
+    margin-bottom: 20px;
+  }
 }
 
-input[type="submit"] {
-    background-color: #0b00a2;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    width: 100%;
+.card {
+  display: flex;
+  stroke-width: 3px;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+  padding: 25px;
+  text-align: center;
+  background-color: rgb(255, 255, 255);
+  border-radius: 10px;
+  position: relative;
+  width: 100%;
+  border: 1px solid #c8c8c8;
+  
 }
 
-/* static/css/chat.css */
+.card a{
+  font-size: 1rem;
+  color: #0b00a2;
+  display: flex;
+  left: 0;
+  width: 100%;
+  text-decoration: none;
+  justify-content: space-between;
+  font-family: 'Open Sans', sans-serif;
+}
+
+.card h2{
+  font-family: 'Open Sans', sans-serif;
+  right: 0;
+  top: 0;
+  position: absolute;
+
+}
+
+@media (max-width: 480px) {
+  .logo {
+    margin-top: 100px;
+  }
+  .container {
+    width: 95%;
+  }
+  .form {
+    padding: 15px;
+  }
+}
+
+@media (max-width: 768px) { /* Adjust the breakpoint as needed */
+  .hidden-on-medium {
+    display: none;
+  }
+
+  .header th:first-child { /* Nombre */
+    width: 60%; /* Adjust widths as needed for two-column layout */
+  }
+  .header th:nth-child(2) { /* Compañía */
+    width: 40%;
+  }
+
+
+}
+
+EOL
+
+    touch static/chat.css
+    cat > static/chat.css << EOL
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background-color: #f0f2f5;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
+  background-color: #ffffff;
+  font-family: 'Open Sans', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  margin: 0;
+}
+
+.logoIN {
+  cursor: pointer;
+  margin: 1rem auto;
+  width: 40px;
+  height: 40px;
+  background-color: #0b00a2;
+  position: relative;
+  display: inline-flex;
+  text-decoration:none;
+  border-radius: 8px;
+}
+.logoIN::before {
+  content: "";
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  position: absolute;
+  top: 30%;
+  left: 70%;
+  transform: translate(-50%, -50%);
+  background-image: linear-gradient(to right, 
+      #ffffff 2px, transparent 1.5px,
+      transparent 1.5px, #ffffff 1.5px,
+      #ffffff 2px, transparent 1.5px);
+  background-size: 4px 100%; 
+}
+
+.logo:hover {
+  background-color: #1d10d3;
+}
+
+.nomPag{
+  margin-left: 100px;
+  padding: 20px 55px;
+  text-decoration:none;
+  margin-left: 2px;
+  color: #0b00a2;
+}
+
+.material-icons{
+  color: #0b00a2;
+}
+
+.topnav i{
+  color: #0b00a2;
+  font-size: 25px;
+}
+
+.topnav-container{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  top: 0;
+}
+
+.topnav a {
+  display: inline-block;
+  text-align: center;
+  padding: 5px 5px;
+  text-decoration: none;
+  margin-left: 2px;
+}
+
+.titles {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 15px;
+  margin: 20px;
+  color: #0b00a2;
+}
+
+.column {
+  float: left;
+  width: 100%;
+  padding: 0 10px;
+  margin-bottom: 20px;
+}
+
+.search-container {
+  position: relative;
+}
+
+.search-container i {
+  position: absolute;
+  left: 25px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.search-container input {
+  padding-left: 40px;
+  width: 100%;
+  border: 2px solid #ccc;
+  box-sizing: border-box;
+  border-radius: 10px;
+  padding: 20px 60px;
+  font-size: 16px;
+  font-family: 'Open Sans', sans-serif;
+}
+
+#tabla {
+  width: 100%;
+  font-size: 16px;
+  font-family: 'Open Sans', sans-serif;
+  padding: 0 55px;
+}
+
+#tabla th, #tabla td {
+  text-align: left;
+  padding: 0.8rem;
+}
+
+
+.row {margin: 0 -5px;}
+
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+@media screen and (max-width: 600px) {
+  .column {
+    width: 100%;
+    display: block;
+    margin-bottom: 20px;
+  }
+}
+
+.card {
+  display: flex;
+  stroke-width: 3px;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+  padding: 25px;
+  text-align: center;
+  background-color: #ffffff;
+  border-radius: 10px;
+  position: relative;
+  width: 100%;
+  border: 1px solid #c8c8c8;
+  
+}
+
+.card a{
+  font-size: 1rem;
+  color: #0b00a2;
+  display: flex;
+  left: 0;
+  width: 100%;
+  text-decoration: none;
+  justify-content: space-between;
+  font-family: 'Open Sans', sans-serif;
+}
+
+.card h2{
+  font-family: 'Open Sans', sans-serif;
+  right: 0;
+  top: 0;
+  position: absolute;
+
+}
+
+@media (max-width: 480px) {
+  .logo {
+    margin-top: 100px;
+  }
+  .container {
+    width: 95%;
+  }
+  .form {
+    padding: 15px;
+  }
+}
+
+@media (max-width: 768px) { /* Adjust the breakpoint as needed */
+  .hidden-on-medium {
+    display: none;
+  }
+
+  .header th:first-child { /* Nombre */
+    width: 60%; /* Adjust widths as needed for two-column layout */
+  }
+  .header th:nth-child(2) { /* Compañía */
+    width: 40%;
+  }
 }
 
 .chat-container {
-    flex-grow: 1;
-    overflow-y: auto;
-    padding: 20px;
-    margin-bottom: 70px;
+  width: 100%;
+  background-color: white;
+  border-radius: 10px;
+  padding: 20px;
+  margin-top: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
-
 .message {
-    margin: 10px;
-    padding: 15px;
-    border-radius: 10px;
-    max-width: 70%;
+  margin-bottom: 15px;
+  padding: 10px;
+  border-radius: 6px;
 }
-
 .user {
-    background-color: #e3f2fd;
-    margin-left: auto;
+  font-family: 'Open Sans', sans-serif;
+  background-color: #e9e9e9;
+  text-align: right;
 }
-
-.assistant {
-    background-color: #f5f5f5;
-    margin-right: auto;
+.chat {
+  font-family: 'Open Sans', sans-serif;
+  background-color: #deecf2;
+  text-align: left;
 }
-
 .input-container {
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-    padding: 10px;
-    background-color: white;
-    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+  width: 100%;
+  margin-top: 20px;
 }
-
 .input-box {
-    display: flex;
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 0 20px;
+  display: flex;
+  border: 1px solid #ccc;
+  border-radius: 6px; 
+  overflow: hidden; 
+}
+.input-box input {
+  flex-grow: 1;
+  padding: 10px;
+  border: none;
+  outline: none;
+  border-radius: 25px 0 0 25px;  
+}
+.input-box button {
+  background-color: #0b00a2; 
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  cursor: pointer;
+  border-radius: 0 6px 6px 0; 
+  transition: background-color 0.3s ease; 
+}
+.input-box button:hover {
+  background-color: #1d10d3; 
+}
+EOL
+
+    touch static/files.css
+    cat > static/files.css <<EOL
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-#user-input {
-    flex-grow: 1;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 20px;
-    margin-right: 10px;
-}
-
-#send-button {
-    background-color: #0b00a2;
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    cursor: pointer;
-}
-
-/* static/css/data.css */
 body {
-    margin: 0;
-    padding: 20px;
-    font-family: Arial, sans-serif;
-    background-color: #f0f2f5;
+  background-color: rgb(255, 255, 255);
+  font-family: 'Open Sans', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  
 }
 
-.stats-container {
-    background-color: white;
+.logoIN {
+  cursor: pointer;
+  margin: 1rem auto;
+  width: 40px;
+  height: 40px;
+  background-color: #0b00a2;
+  position: relative;
+  display: inline-flex;
+  text-decoration:none;
+  border-radius: 8px;
+}
+.logoIN::before {
+  content: "";
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  position: absolute;
+  top: 30%;
+  left: 70%;
+  transform: translate(-50%, -50%);
+  background-image: linear-gradient(to right, 
+      #ffffff 2px, transparent 1.5px,
+      transparent 1.5px, #ffffff 1.5px,
+      #ffffff 2px, transparent 1.5px);
+  background-size: 4px 100%; 
+}
+
+.nomPag{
+  margin-left: 100px;
+  padding: 20px 55px;
+  text-decoration:none;
+  margin-left: 2px;
+  color: #0b00a2;
+}
+
+.material-icons{
+  color: #0b00a2;
+
+}
+
+.topnav i{
+  color: #0b00a2;
+  font-size: 25px;
+}
+
+.topnav-container{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  top: 0;
+}
+
+.topnav a {
+  display: inline-block;
+  text-align: center;
+  padding: 5px 5px;
+  text-decoration: none;
+  margin-left: 2px;
+}
+
+@media screen and (max-width: 600px) {
+  .column {
+    width: 100%;
+    display: block;
+    margin-bottom: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo {
+    margin-top: 100px;
+  }
+  .container {
+    width: 95%;
+  }
+  .form {
+    padding: 15px;
+  }
+}
+
+@media (max-width: 768px) { /* Adjust the breakpoint as needed */
+  .hidden-on-medium {
+    display: none;
+  }
+
+  .header th:first-child { /* Nombre */
+    width: 60%; /* Adjust widths as needed for two-column layout */
+  }
+  .header th:nth-child(2) { /* Compañía */
+    width: 40%;
+  }
+}
+.dashboard {
+    width: 100%;
+    margin: 0 auto;
+}
+.header {
+    background: white;
     padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border: 1px solid #c8c8c8;
+}
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+    
+}
+/* Or display them inline within the card: */
+/* .stat-item {
+display: inline-block;
+margin-right: 10px;
+} 
+*/
+.stat-card {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+    border: 1px solid #c8c8c8;
+}
+.stat-title {
+    color: #6b7280;
+    font-size: 0.875rem;
+    margin-bottom: 8px;
+}
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #111827;
+}
+.chart-container {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     margin-bottom: 20px;
 }
-
-.data-container {
-    background-color: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    overflow-x: auto;
-}
-
-table {
+.data-table {
     width: 100%;
     border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border: 1px solid #c8c8c8;
 }
-
-th, td {
+.data-table th, .data-table td {
     padding: 12px;
     text-align: left;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid #e5e7eb;
 }
-
-th {
-    background-color: #f8f9fa;
-    font-weight: bold;
+.data-table th {
+    background: #f9fafb;
+    font-weight: 500;
 }
-
-tr:hover {
-    background-color: #f5f5f5;
+.data-table tr:last-child td {
+    border-bottom: none;
+}
 
 EOL
 }
+
+
 
 main() {
     echo -e "${YELLOW}🔧 Django Project Initialization${NC}"
@@ -723,10 +1169,8 @@ main() {
     python manage.py migrate
     
     chmod 600 .env
-    source .venv/bin/activate
     
     echo -e "${GREEN}🎉 Django project is ready! Run 'python manage.py runserver' to start.${NC}"
 }
 
 main
-source .venv/bin/activate
