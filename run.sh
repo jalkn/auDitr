@@ -13,7 +13,7 @@ createStructure() {
     python3 -m venv .venv
     source .venv/bin/activate
     pip install --upgrade pip
-    pip install django python-dotenv pandas openpyxl
+    pip install django python-dotenv pandas openpyxl  plotly
     
     # Create Django project
     django-admin startproject config .
@@ -23,6 +23,7 @@ createStructure() {
     
     # Create additional directories
     mkdir -p {media/uploads,media/downloads,static}
+    
     
     # Create other files
     touch .env .gitignore README.md
@@ -181,7 +182,22 @@ urlpatterns = [
     path('', views.excel_data, name='excel_data'),
 ]
 EOL
+
+    mkdir -p data/templatetags
+    touch data/templatetags/data_filters.py
+    cat > data/templatetags/data_filters.py << EOL
+from django import template
+
+register = template.Library()
+
+@register.filter
+def get_item(dictionary, key):
+    return dictionary.get(key)
+
+EOL
 }
+
+    
 
 createViews() {
     # Dashboard Views
@@ -202,37 +218,85 @@ EOL
     cat > files/views.py << EOL
 from django.shortcuts import render
 import pandas as pd
+from django.contrib import messages
+import plotly.express as px
+import plotly.utils
+import json
 
 def read_excel(request):
+    # Initialize context with has_data as False by default
+    context = {'has_data': False}
+    
     if request.method == 'POST':
         if 'file' not in request.FILES:
-            return render(request, 'files/files.html', {'error': 'Upload a file'})
+            messages.error(request, 'Please upload a file')
+            return render(request, 'files/files.html', context)
         
         file = request.FILES['file']
         
         if not file.name.lower().endswith(('.xls', '.xlsx', '.xlsm', '.xlsb')):
-            return render(request, 'files/files.html', {'error': 'Invalid file type'})
+            messages.error(request, 'Invalid file type. Please upload an Excel file.')
+            return render(request, 'files/files.html', context)
         
         try:
+            # Read the Excel file
             df = pd.read_excel(file)
+            
+            # Basic statistics
             stats = {
                 'filename': file.name,
                 'total_rows': len(df),
-                'total_value': df.iloc[:, -1].sum(),
-                'average_value': df.iloc[:, -1].mean(),
-                'null_values': df.isnull().sum().sum()
+                'total_columns': len(df.columns),
+                'null_values': df.isnull().sum().sum(),
+                'numeric_columns': len(df.select_dtypes(include=['int64', 'float64']).columns),
+                'text_columns': len(df.select_dtypes(include=['object']).columns)
             }
             
-            return render(request, 'data/excel_data.html', {
+            # Add summary statistics for numeric columns
+            numeric_stats = {}
+            for col in df.select_dtypes(include=['int64', 'float64']).columns:
+                numeric_stats[col] = {
+                    'mean': df[col].mean(),
+                    'median': df[col].median(),
+                    'std': df[col].std(),
+                    'min': df[col].min(),
+                    'max': df[col].max()
+                }
+            
+            # Create visualizations using plotly
+            visualizations = {}
+            
+            # Histogram for numeric columns
+            for col in df.select_dtypes(include=['int64', 'float64']).columns[:3]:  # Limit to first 3 numeric columns
+                fig = px.histogram(df, x=col, title=f'Distribution of {col}')
+                visualizations[col] = json.dumps(fig.to_dict())
+            
+            # Prepare table data
+            table_data = df.head(10).to_dict('records')  # Show first 10 rows
+            columns = df.columns.tolist()
+            
+            # Update context with all the data
+            context.update({
                 'stats': stats,
-                'data': df.to_dict('records'),
-                'columns': df.columns.tolist()
+                'numeric_stats': numeric_stats,
+                'visualizations': visualizations,
+                'table_data': table_data,
+                'columns': columns,
+                'has_data': True  # Set this to True since we have data
             })
             
+            # Print debug information
+            print("Context keys:", context.keys())
+            print("Has data:", context['has_data'])
+            print("Number of rows in table_data:", len(context['table_data']))
+            
+            return render(request, 'data/excel_data.html', context)
+            
         except Exception as e:
-            return render(request, 'files/files.html', {'error': str(e)})
+            messages.error(request, f'Error processing file: {str(e)}')
+            return render(request, 'files/files.html', context)
     
-    return render(request, 'files/files.html')
+    return render(request, 'files/files.html', context)
 EOL
 
     # Data Views
@@ -417,45 +481,105 @@ EOL
 EOL
     
     cat > data/templates/data/excel_data.html << EOL
+{% load data_filters %}
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Excel Data</title>
+    <title>Excel Analysis</title>
     <link rel="stylesheet" href="{% static 'dashStyle.css' %}">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
 <body>
-    {% if stats %}
-    <div class="stats-container">
-        <h2>File Statistics</h2>
-        <p>Filename: {{ stats.filename }}</p>
-        <p>Total Rows: {{ stats.total_rows }}</p>
-        <p>Total Value: {{ stats.total_value }}</p>
-        <p>Average Value: {{ stats.average_value }}</p>
-        <p>Null Values: {{ stats.null_values }}</p>
+    <div class="topnav-container">
+        <div>
+            <a href="{% url 'dashboard:dashboard' %}" class="logoIN">
+                <div class="nomPag">Analysis Results</div>
+            </a>
+        </div>
+        <div class="topnav">
+            <a href="{% url 'dashboard:files' %}"><i class="fa fa-upload"></i></a>
+            <a href="{% url 'dashboard:dashboard' %}"><i class="fa fa-bar-chart"></i></a>
+        </div>
     </div>
 
-    <div class="data-container">
-        <table>
-            <thead>
-                <tr>
-                    {% for column in columns %}
-                    <th>{{ column }}</th>
-                    {% endfor %}
-                </tr>
-            </thead>
-            <tbody>
-                {% for row in data %}
-                <tr>
-                    {% for column in columns %}
-                    <td>{{ row|get_item:column }}</td>
-                    {% endfor %}
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+    {% if has_data %}
+        <!-- File Statistics -->
+        <div class="stat-card">
+            <h2>File Overview</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <p><strong>Filename:</strong> {{ stats.filename }}</p>
+                    <p><strong>Total Rows:</strong> {{ stats.total_rows }}</p>
+                    <p><strong>Total Columns:</strong> {{ stats.total_columns }}</p>
+                    <p><strong>Null Values:</strong> {{ stats.null_values }}</p>
+                    <p><strong>Numeric Columns:</strong> {{ stats.numeric_columns }}</p>
+                    <p><strong>Text Columns:</strong> {{ stats.text_columns }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Numeric Statistics -->
+        {% if numeric_stats %}
+        <div class="stat-card">
+            <h2>Numeric Column Statistics</h2>
+            {% for column, stats in numeric_stats.items %}
+            <div class="column-stats">
+                <h3>{{ column }}</h3>
+                <p>Mean: {{ stats.mean|floatformat:2 }}</p>
+                <p>Median: {{ stats.median|floatformat:2 }}</p>
+                <p>Standard Deviation: {{ stats.std|floatformat:2 }}</p>
+                <p>Min: {{ stats.min|floatformat:2 }}</p>
+                <p>Max: {{ stats.max|floatformat:2 }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Visualizations -->
+        {% if visualizations %}
+        <div class="visualizations-container">
+            <h2>Data Visualizations</h2>
+            {% for column, plot_data in visualizations.items %}
+            <div class="plot-container" id="plot-{{ forloop.counter }}"></div>
+            <script>
+                var plotData = {{ plot_data|safe }};
+                Plotly.newPlot('plot-{{ forloop.counter }}', plotData.data, plotData.layout);
+            </script>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Data Preview -->
+        <div class="data-preview">
+            <h2>Data Preview (First 10 rows)</h2>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            {% for column in columns %}
+                            <th>{{ column }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in table_data %}
+                        <tr>
+                            {% for column in columns %}
+                            <td>{{ row|get_item:column }}</td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% else %}
+        <div class="error-message">
+            No data available. Please upload an Excel file.
+        </div>
     {% endif %}
 </body>
 </html>
@@ -624,6 +748,30 @@ body {
   top: 0;
   position: absolute;
 
+}
+
+.visualizations-container {
+    margin: 20px 0;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.plot-container {
+    margin: 20px 0;
+    height: 400px;
+}
+
+.column-stats {
+    margin: 15px 0;
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.table-container {
+    overflow-x: auto;
+    margin: 20px 0;
 }
 
 @media (max-width: 480px) {
