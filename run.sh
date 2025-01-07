@@ -1179,6 +1179,9 @@ main() {
     python manage.py migrate
     
     chmod 600 .env
+
+    python3 -m venv .venv
+    source .venv/bin/activate
     
     echo -e "${GREEN}🎉 Django project is ready! Run 'python manage.py runserver' to start.${NC}"
 }
