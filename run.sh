@@ -29,18 +29,6 @@ createStructure() {
     touch .env .gitignore README.md
 }
 
-generateGitignore() {
-    cat > .gitignore << EOL
-*.pyc
-__pycache__/
-.venv/
-.env
-db.sqlite3
-.vscode/
-media/
-EOL
-}
-
 generateEnv() {
     cat > .env << EOL
 SECRET_KEY=$(python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())')
@@ -1166,7 +1154,6 @@ main() {
     echo -e "${YELLOW}🔧 Django Project Initialization${NC}"
     
     createStructure
-    generateGitignore
     generateEnv
     updateSettings
     createUrls
