@@ -26,7 +26,7 @@ createStructure() {
     
     
     # Create other files
-    touch .env .gitignore README.md
+    touch .env
 }
 
 generateEnv() {
