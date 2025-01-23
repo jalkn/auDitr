@@ -191,6 +191,9 @@ createViews() {
     # Dashboard Views
     cat > dashboard/views.py << EOL
 from django.shortcuts import render
+from django.http import StreamingHttpResponse
+import time
+import json
 
 def dashboard(request):
     return render(request, 'dashboard/dashboard.html')
@@ -198,18 +201,34 @@ def dashboard(request):
 def files(request):
     return render(request, 'dashboard/files.html')
 
+
 def chat(request):
-    return render(request, 'dashboard/chat.html')
+    if request.method == 'GET':  # For initial page load
+        return render(request, 'dashboard/chat.html')
+
+    return StreamingHttpResponse(stream_generator(request), content_type='text/event-stream')
+
+def stream_generator(request):
+    while True:
+        # Replace this with your actual chat logic (e.g., database queries, external API calls)
+        time.sleep(2)  # Simulate some delay
+
+        user_message = request.GET.get('message') # Get the last user input
+
+        if user_message:
+          message = {"role": "chat", "content": f"You said: {user_message}"}
+          yield f"data: {json.dumps(message)}\n\n"
 EOL
 
     # Files Views
     cat > files/views.py << EOL
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 import pandas as pd
 from django.contrib import messages
 import plotly.express as px
 import plotly.utils
 import json
+import numpy as np 
 
 def read_excel(request):
     # Initialize context with has_data as False by default
@@ -272,13 +291,33 @@ def read_excel(request):
                 'columns': columns,
                 'has_data': True  # Set this to True since we have data
             })
+
+            # Convert numpy int64 to native Python int
+            stats['null_values'] = int(stats['null_values'])
+
+            # Convert numeric_stats values to regular Python types
+            for col, col_stats in numeric_stats.items():
+                for stat_name, stat_value in col_stats.items():
+                    numeric_stats[col][stat_name] = float(stat_value) if isinstance(stat_value, (np.floating, np.integer)) else stat_value
             
             # Print debug information
             print("Context keys:", context.keys())
             print("Has data:", context['has_data'])
             print("Number of rows in table_data:", len(context['table_data']))
             
-            return render(request, 'data/excel_data.html', context)
+            # Store data in the session
+            request.session['excel_data'] = {
+                'stats': stats,
+                'numeric_stats': numeric_stats,
+                'visualizations': visualizations,  # Make sure visualizations are serializable
+                'table_data': table_data,
+                'columns': columns,
+                'has_data': True
+            }
+            print(request.session['excel_data'])
+
+
+            return redirect('data:excel_data')
             
         except Exception as e:
             messages.error(request, f'Error processing file: {str(e)}')
@@ -292,7 +331,14 @@ EOL
 from django.shortcuts import render
 
 def excel_data(request):
-    return render(request, 'data/excel_data.html')
+    context = request.session.get('excel_data', {'has_data': False})  # Retrieve from session
+    
+    # Delete after retrieving so you don't see old data on refresh.
+    if 'excel_data' in request.session:
+        del request.session['excel_data']
+        
+    print(context)
+    return render(request, 'data/excel_data.html', context)
 EOL
 }
 
@@ -460,9 +506,58 @@ EOL
     <div class="input-container">
         <div class="input-box">
             <input type="text" id="user-input" placeholder="Chatea con Arpa" autofocus>
-            <button id="send-button"><i class="fa fa-send"></i></button>
+            <button id="send-button"> <i class="fa fa-send"></i></button>
         </div>
     </div>
+    <script>
+        const chatContainer = document.getElementById('chat-container');
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+  
+  
+        // Function to create message element
+        function createMessageElement(role, content) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', role);
+            messageDiv.textContent = content;
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+          }
+  
+  
+        sendButton.addEventListener('click', () => {
+          const message = userInput.value;
+  
+          if (message.trim() !== '') {
+               createMessageElement('user', message);
+  
+              let url = new URL("{% url 'dashboard:chat' %}");
+              let params = new URLSearchParams(url.search);
+              params.set('message', message);
+              url.search = params.toString();
+  
+  
+  
+              const eventSource = new EventSource(url.toString());
+  
+              eventSource.onmessage = (event) => {
+                  const data = JSON.parse(event.data);
+                  createMessageElement(data.role, data.content);
+              };
+  
+  
+              userInput.value = ''; // Clear the input field
+          }
+  
+        });
+  
+        userInput.addEventListener('keyup', (event) => {
+            if (event.key === 'Enter') {
+              sendButton.click(); // Simulate a click on the send button
+            }
+        });
+  
+      </script>
 </body>
 </html>
 
@@ -1170,7 +1265,9 @@ main() {
     python3 -m venv .venv
     source .venv/bin/activate
     
-    echo -e "${GREEN}🎉 Django project is ready! Run 'python manage.py runserver' to start.${NC}"
+    echo -e "${GREEN}🎉 Django project is ready!${NC}"
+
+    python3 manage.py runserver
 }
 
 main
